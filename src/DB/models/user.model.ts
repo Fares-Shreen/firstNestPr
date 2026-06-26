@@ -1,7 +1,8 @@
 import { MongooseModule, Prop, Schema, SchemaFactory } from "@nestjs/mongoose";
-import { UserRoleEnum, genderEnum } from "../../common/enum/user.enum";
+import { genderEnum } from "../../common/enum/user.enum";
 import { HydratedDocument } from "mongoose";
 import { hash } from "src/common/utils/security/hash.security";
+import { RoleEnum } from "src/common/enum/role.enum";
 
 
 @Schema({
@@ -21,12 +22,16 @@ export class User {
     age: number
     @Prop({ type: String, required: true, enum: genderEnum, default: genderEnum.MALE })
     gender: string
-    @Prop({ type: String, required: true, enum: UserRoleEnum, default: UserRoleEnum.USER })
+    @Prop({ type: String, required: true, enum:RoleEnum, default:RoleEnum.USER })
     role: string
     @Prop({ type: String })
     profilePic: string
     @Prop({ type: String, trim: true })
     address: string
+    @Prop({type:Date, default:Date.now()})
+    changeCredentials:Date
+    @Prop({type:Boolean, default:false})
+    confirmed:boolean
 }
 
 export const userSchema = SchemaFactory.createForClass(User)

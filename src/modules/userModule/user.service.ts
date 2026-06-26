@@ -4,17 +4,20 @@ import UserRepository from "src/DB/repositories/userRepository";
 import { createUserDto, signInDto } from "./DTO/userDto";
 import { compare, hash } from "src/common/utils/security/hash.security";
 import { generateOTP, sendEmail } from "src/common/utils/security/nodemailer/sendEmail";
-import { eventEmitter, registerEmailEvent } from "src/common/utils/security/nodemailer/email.event";
+import { emailEventEmitter, eventEmitter } from "src/common/utils/security/nodemailer/email.event";
 import emailTemplate from "src/common/utils/security/nodemailer/emailTemplete";
 import redisService from "src/common/cache/redis.service";
 import { randomUUID } from "crypto";
-import { TokenService } from "src/common/utils/security/token.service";
-import { UserRoleEnum } from "src/common/enum/user.enum";
+import { TokenService } from "src/common/utils/services/token.service";
+import { RoleEnum } from "src/common/enum/role.enum";
+import { CloudinaryTools } from "src/common/utils/cloudinary/clodinary.tools";
+import { cloudinaryEventEmitter, SEND_CLOUDINARY_EVENT } from "src/common/utils/cloudinary/cloudinary.event";
+
 
 
 @Injectable()
 export class UserService {
-    constructor(private readonly userRepository: UserRepository, private readonly RedisService: redisService, private readonly tokenService: TokenService) { }
+    constructor(private readonly cloudinaryTools: CloudinaryTools,private readonly userRepository: UserRepository, private readonly RedisService: redisService, private readonly tokenService: TokenService) { }
 
     async getUser() {
         return await this.userRepository.find(
@@ -44,14 +47,13 @@ export class UserService {
             throw new NotAcceptableException("Something going wrong")
         }
         const OTP = generateOTP();
-        const emailEvent = process.env.SEND_EMAIL_EVENT;
 
-        if (!emailEvent) {
-            throw new NotAcceptableException('SEND_EMAIL_EVENT is not configured');
-        }
-
-        registerEmailEvent(emailEvent);
-        eventEmitter.emit(emailEvent, async () => {
+        // await sendEmail({
+        //     to: body.email,
+        //     subject: "Welcome to Social App",
+        //     html: emailTemplate(body.userName, OTP.toString()),
+        // });
+        emailEventEmitter.emit(process.env.SEND_EMAIL_EVENT as string, async () => {
             await sendEmail({
                 to: body.email,
                 subject: "Welcome to Social App",
@@ -92,7 +94,7 @@ export class UserService {
             await this.tokenService.GenerateToken({
                 payload: { userId: userExist._id, jti: accessTokenId, email: userExist.email, role: userExist.role },
                 options: {
-                    secret: userExist.role === UserRoleEnum.ADMIN
+                    secret: userExist.role === RoleEnum.ADMIN
                         ? ACCESS_TOKEN_ACCESS_ADMIN!
                         : ACCESS_TOKEN_ACCESS_USER! as string, expiresIn: "1day"
                 }
@@ -100,7 +102,8 @@ export class UserService {
         const refreshToken = await this.tokenService.GenerateToken({
             payload: { userId: userExist._id, jti: refreshTokenId, email: userExist.email, role: userExist.role },
             options: {
-                secret: userExist.role === UserRoleEnum.ADMIN
+                secret: userExist.role === RoleEnum
+                .ADMIN
                     ? REFRESH_TOKEN_ACCESS_ADMIN!
                     : REFRESH_TOKEN_ACCESS_USER! as string, expiresIn: "7day"
             }
@@ -111,6 +114,27 @@ export class UserService {
         return { accessToken, refreshToken };
 
     }
+    async uploadProfilePic( file: Express.Multer.File) {
+        const userId = "6a39a6deddbb9c69bcfca1b0"
+        console.log(userId);
+
+        const user = await this.userRepository.findById(userId as any);
+        if (!user) {
+            throw new NotAcceptableException("User not found");
+        }
+        cloudinaryEventEmitter.emit(SEND_CLOUDINARY_EVENT, async () => {
+            const uploadedFile = await this.cloudinaryTools.uploadFile({ filePath: file.path, folder: "profilePics" });
+            if (!uploadedFile) {
+                throw new NotAcceptableException("Failed to upload profile picture");
+            }
+            const { secure_url } = uploadedFile;
+            user.profilePic = secure_url;
+            await user.save();
+            return { message: "Profile picture uploaded successfully", profilePic: secure_url };
+        });
+
+    }
+
 
 
 }

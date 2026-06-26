@@ -1,20 +1,12 @@
 import nodemailer from "nodemailer";
 
 const createTransport = () => {
-    const email = process.env.EMAIL;
-    const password = process.env.EMAIL_PASSWORD;
-
-    if (!email || !password) {
-        throw new Error(
-            'Missing email credentials: set EMAIL and EMAIL_PASSWORD in your environment',
-        );
-    }
 
     return nodemailer.createTransport({
         service: "gmail",
         auth: {
-            user: email,
-            pass: password,
+            user: process.env.EMAIL,
+            pass: process.env.EMAIL_PASSWORD,
         },
     });
 };
