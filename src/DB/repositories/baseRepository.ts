@@ -1,5 +1,5 @@
 import {
-    HydratedDocument, Model, PopulateOptions, ProjectionType, QueryFilter, QueryOptions, Types
+    DeleteResult, HydratedDocument, Model, PopulateOptions, ProjectionType, QueryFilter, QueryOptions, Types
     , UpdateQuery
 } from "mongoose";
 
@@ -31,6 +31,10 @@ abstract class baseRepository<TDocument> {
     async fineOneAndDelete(filter: QueryFilter<TDocument>): Promise<HydratedDocument<TDocument> | null> {
         return await this.model.findOneAndDelete(filter)
     }
+    async Delete(filter: QueryFilter<TDocument>): Promise<DeleteResult> {
+        return await this.model.deleteOne(filter)
+    }
+
     async deleteMany(filter: QueryFilter<TDocument>): Promise<any> {
         return await this.model.deleteMany(filter)
     }
@@ -41,7 +45,7 @@ abstract class baseRepository<TDocument> {
     async findOneAndUpdate({ filter, update, options }: { filter: QueryFilter<TDocument>, update: UpdateQuery<TDocument>, options?: QueryOptions }): Promise<HydratedDocument<TDocument> | null> {
         return await this.model.findOneAndUpdate(filter, update, { returnDocument: 'after', ...options })
     }
-    async pagination({ page, limit, sort, seacrh, populate }: { page?: number, limit?: number, sort?: string, populate?: any, seacrh?: any }) {
+    async pagination({ page, limit, sort, search, populate }: { page?: number, limit?: number, sort?: string, populate?: any, search?: any }) {
         page = +page! || 1;
         limit = +limit! || 10;
 
@@ -50,7 +54,7 @@ abstract class baseRepository<TDocument> {
 
         const skip = (page - 1) * limit;
         const [data, totalDoc] = await Promise.all([
-            await this.model.find({ ...(seacrh ?? {}) }).skip(skip).limit(limit).sort(sort).populate(populate).exec(),
+            await this.model.find({ ...(search ?? {}) }).skip(skip).limit(limit).sort(sort).populate(populate).exec(),
             await this.model.countDocuments()
         ])
         const totalPages = Math.ceil(totalDoc / limit);

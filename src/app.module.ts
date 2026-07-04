@@ -7,6 +7,9 @@ import { Connection } from 'mongoose';
 import { ConfigModule } from '@nestjs/config';
 import redisService from './common/cache/redis.service';
 import { RedisModule } from './common/cache/redis.module';
+import { BrandModule } from './modules/brandModule/brand/brand.module';
+import { CategoryModule } from './modules/categoryModule/category/category.module';
+import { ProductModule } from './modules/productModule/product/product.module';
 
 @Module({
   imports: [ConfigModule.forRoot({
@@ -20,7 +23,7 @@ import { RedisModule } from './common/cache/redis.module';
     connection.on('disconnecting', () => console.log('disconnecting'));
     return connection;
     }
-  }),UserModule,RedisModule],
+  }),UserModule,RedisModule,BrandModule,CategoryModule,ProductModule],
   controllers: [AppController],
   providers: [AppService],
 })

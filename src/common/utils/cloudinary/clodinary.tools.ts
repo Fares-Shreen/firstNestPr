@@ -12,7 +12,7 @@ export class CloudinaryTools {
         }
     }
 
-    async uploadFiles({ files, folder } = {files: [], folder: ""}) {
+    async uploadFiles({ files, folder } = {files:[], folder: ""}) {
         try {
             const coverPictures = await Promise.all(
                 files.map(async (file) => {
@@ -28,7 +28,20 @@ export class CloudinaryTools {
             console.log(error);
         }
     };
+
+    async deleteFile(publicId: string) {
+        try {
+            const result = await cloudinary.uploader.destroy(publicId);
+            return result;
+        } catch (error) {
+            console.log(error);
+        }
+    }
+
 }
+
+
+
 // export const uploadFile = async ({ filePath, folder } = {}) => {
 //   try {
 //     const result = await cloudinary.uploader.upload(filePath, { folder });

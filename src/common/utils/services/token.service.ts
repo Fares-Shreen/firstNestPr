@@ -10,7 +10,7 @@ export class TokenService {
     constructor(
         private jwtService: JwtService, 
         private readonly userRepo: UserRepository,
-        private readonly redisService: redisService) { }
+        ) { }
 
 
     GenerateToken = ({ payload, options }: { payload: object, options: JwtSignOptions }): Promise<string> => {
