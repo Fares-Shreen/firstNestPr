@@ -1,7 +1,7 @@
 import { Optional } from "@nestjs/common";
 import { PartialType } from "@nestjs/mapped-types";
 import { Type } from "class-transformer";
-import { IsMongoId, IsNotEmpty, IsNumber, IsOptional, IsPositive, IsString, Length, Validate } from "class-validator";
+import { IsInt, IsMongoId, IsNotEmpty, IsNumber, IsOptional, IsPositive, IsString, Length, Max, MAX, Min, Validate } from "class-validator";
 import { Types } from "mongoose";
 import { AtLeastOne, brandsIdChecker } from "src/common/decorators/product.decorator";
 import is from "zod/v4/locales/is.js";
@@ -18,21 +18,21 @@ export class createProductDTO {
     @Validate(brandsIdChecker)
     @IsOptional()
     categoryId: Types.ObjectId
-
     @Validate(brandsIdChecker)
     @IsOptional()
     brandId: Types.ObjectId
-
     @IsNotEmpty()
     @IsPositive()
     @IsNumber()
     @Type(() => Number)
     price: number
-    @IsNotEmpty()
+
     @IsPositive()
-    @IsNumber()
+    @IsInt()
     @IsOptional()
     @Type(() => Number)
+    @Min(0)
+    @Max(100)
     discount: number
     @IsNotEmpty()
     @IsPositive()
@@ -40,7 +40,7 @@ export class createProductDTO {
     @Type(() => Number)
     stock: number
 }
-@AtLeastOne(["name","slogan"])
+@AtLeastOne(["name","description","price","dicount","stock", "categoryId" ,"brandId"])
 export class updateProductDto extends PartialType(createProductDTO){
 
 }

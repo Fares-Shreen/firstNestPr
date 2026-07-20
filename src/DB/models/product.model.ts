@@ -26,13 +26,15 @@ export class Product {
     slug: string
     @Prop({ type: Types.ObjectId, ref: Category.name })
     categoryId: Types.ObjectId
-    @Prop({ type: Types.ObjectId, ref: Brand.name})
+    @Prop({ type: Types.ObjectId, ref: Brand.name })
     brandId: Types.ObjectId
     @Prop({ type: String, required: true })
     description: string
     @Prop({ type: Number, required: true })
     price: number
-    @Prop({ type: Number, required: true, default: 0 , optional:true})
+    @Prop({ type: [{ type: Types.ObjectId, ref: Product.name }] })
+    boughtBy:Types.ObjectId[]
+    @Prop({ type: Number, required: true, default: 0, optional: true, max: 100, min: 0 })
     discount: number
     @Prop({ type: Number, required: true })
     stock: Number
@@ -64,7 +66,7 @@ ProductSchema.pre(["findOneAndUpdate", "updateOne"], function () {
     if (updated.name) {
         updated.slug = slugify(updated.name)
     }
-    
+
 })
 // ProductSchema.pre(["findOneAndUpdate", "updateOne"], function () {
 //     console.log(this)

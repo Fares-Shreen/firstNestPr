@@ -1,6 +1,6 @@
 
 import { UserService } from './user.service';
-import { Body, Controller, Get, Post, Req, SetMetadata, UploadedFile, UploadedFiles, UseGuards, UseInterceptors, UsePipes, ValidationPipe } from "@nestjs/common";
+import { Body, Controller, Get, Param, Patch, Post, Req, SetMetadata, UploadedFile, UploadedFiles, UseGuards, UseInterceptors, UsePipes, ValidationPipe } from "@nestjs/common";
 import { createUserDto, signInDto} from './DTO/userDto';
 import { tokenEnum } from 'src/common/enum/token.enum';
 import { Roles, tokenTypeDecorator } from 'src/common/decorators/auth.decorator';
@@ -13,6 +13,7 @@ import { LoggingInterceptor } from 'src/common/interceptors/logger.interceptor';
 import { multer_enum , store_type_enum} from 'src/common/enum/multer.enum';
 import { multerCloud } from 'src/common/middleware/multer.cloud';
 import { FileFieldsInterceptor, FileInterceptor, FilesInterceptor } from '@nestjs/platform-express';
+import { Types } from 'mongoose';
 
 
 
@@ -60,5 +61,14 @@ export class UserController {
         console.log("file",file);
         return this.userService.uploadProfilePic(file)
     }
+
+    @Patch("wishlist/:productId")
+    @tokenTypeDecorator(tokenEnum.accessToken)
+    @UseGuards(AuthGuard)
+    wishlistActions(@User() user: userModel.hydartedUserDoc, @Param("productId") productId:Types.ObjectId) {
+        console.log(productId)
+        return this.userService.add_remove_from_wishlist(user, productId)
+    }
+
 
 }

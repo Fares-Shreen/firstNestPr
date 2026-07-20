@@ -1,9 +1,10 @@
 
 import { HttpException } from "@nestjs/common"
-import { IsEmail, IsInt, IsNotEmpty, IsNumber, IsString, Length, registerDecorator, Validate, validate, ValidateIf, ValidationOptions } from "class-validator"
+import { IsEmail, IsInt, IsMongoId, IsNotEmpty, IsNumber, IsString, Length, registerDecorator, Validate, validate, ValidateIf, ValidationOptions } from "class-validator"
 import z, { boolean } from "zod"
 
 import { ValidatorConstraint, ValidatorConstraintInterface, ValidationArguments } from 'class-validator';
+import { Types } from "mongoose";
 
 @ValidatorConstraint({ name: 'customText', async: false })
 export class passwordMatch implements ValidatorConstraintInterface {
@@ -63,6 +64,8 @@ export class signInDto {
     @IsString()
     password: string
 }
+
+
 
 
 // export const createUserSchema = z.strictObject({

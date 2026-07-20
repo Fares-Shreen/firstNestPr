@@ -10,12 +10,14 @@ import { JwtService } from "@nestjs/jwt";
 import { LoggerMiddleware } from "src/common/middleware/logger.middleware";
 import { authenticationService } from "src/common/middleware/authentecation";
 import { CloudinaryTools } from "src/common/utils/cloudinary/clodinary.tools";
+import ProductRepository from "src/DB/repositories/product.repository";
+import { ProductModel } from "src/DB/models/product.model";
 
 
 @Module({
-  imports: [userModel, RedisModule],
+  imports: [userModel, RedisModule,ProductModel],
   controllers: [UserController],
-  providers: [TokenService, UserService, UserRepository, redisService, JwtService,
+  providers: [TokenService, UserService, UserRepository, redisService, JwtService,ProductRepository,
     CloudinaryTools
   ],
   exports: []

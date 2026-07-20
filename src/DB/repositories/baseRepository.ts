@@ -1,7 +1,8 @@
 import {
     DeleteResult, HydratedDocument, Model, PopulateOptions, ProjectionType, QueryFilter, QueryOptions, Types
-    , UpdateQuery
+    , UpdateQuery, PipelineStage
 } from "mongoose";
+
 
 abstract class baseRepository<TDocument> {
     constructor(private readonly model: Model<TDocument>) { }
@@ -27,6 +28,7 @@ abstract class baseRepository<TDocument> {
             .limit(options?.limit || 0)
             .sort(options?.sort || {})
             .populate(options?.populate as PopulateOptions)
+
     }
     async fineOneAndDelete(filter: QueryFilter<TDocument>): Promise<HydratedDocument<TDocument> | null> {
         return await this.model.findOneAndDelete(filter)
@@ -69,6 +71,12 @@ abstract class baseRepository<TDocument> {
             totalDoc
         }
 
+    }
+    async aggregate<TResult = any>(
+        pipeline: PipelineStage[],
+        options?: Record<string, any>,
+    ): Promise<TResult[]> {
+        return this.model.aggregate<TResult>(pipeline).option(options ?? {});
     }
 
 

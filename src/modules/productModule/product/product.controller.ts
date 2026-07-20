@@ -46,6 +46,9 @@ export class ProductController {
         return this.productService.updateProduct(user, ProductData, Params.ProductId);
 
     }
+    @tokenTypeDecorator(tokenEnum.accessToken)
+    @Roles([RoleEnum.USER])
+    @UseGuards(AuthGuard, AuthrizationGuard)
     @Get("")
 
     getProducts(
@@ -53,15 +56,23 @@ export class ProductController {
     ) {
         return this.productService.getProducts(Query);
     }
-
+    @tokenTypeDecorator(tokenEnum.accessToken)
+    @Roles([RoleEnum.USER])
+    @UseGuards(AuthGuard, AuthrizationGuard)
     @Patch("soft-delete/:ProductId")
     softDeleteProduct(@Param() Params: ProductIdDto) {
         return this.productService.softDeleteProduct(Params)
     }
+    @tokenTypeDecorator(tokenEnum.accessToken)
+    @Roles([RoleEnum.USER])
+    @UseGuards(AuthGuard, AuthrizationGuard)
     @Patch("restore-soft-delete/:ProductId")
     restoreSoftDeleteProduct(@Param() Params: ProductIdDto) {
         return this.productService.restoreSoftDeleteProduct(Params)
     }
+    @tokenTypeDecorator(tokenEnum.accessToken)
+    @Roles([RoleEnum.USER])
+    @UseGuards(AuthGuard, AuthrizationGuard)
     @Delete("delete/:ProductId")
     DeleteProduct(@Param() Params: ProductIdDto) {
         return this.productService.deleteProduct(Params)

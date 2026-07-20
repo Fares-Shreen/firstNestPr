@@ -1,7 +1,7 @@
-import { ConflictException, Injectable, NotAcceptableException } from "@nestjs/common";
-import { User } from "src/DB/models/user.model";
+import { BadRequestException, ConflictException, Injectable, NotAcceptableException } from "@nestjs/common";
+import { hydartedUserDoc, User } from "src/DB/models/user.model";
 import UserRepository from "src/DB/repositories/userRepository";
-import { createUserDto, signInDto } from "./DTO/userDto";
+import { createUserDto,signInDto } from "./DTO/userDto";
 import { compare, hash } from "src/common/utils/security/hash.security";
 import { generateOTP, sendEmail } from "src/common/utils/security/nodemailer/sendEmail";
 import { emailEventEmitter, eventEmitter } from "src/common/utils/security/nodemailer/email.event";
@@ -12,12 +12,14 @@ import { TokenService } from "src/common/utils/services/token.service";
 import { RoleEnum } from "src/common/enum/role.enum";
 import { CloudinaryTools } from "src/common/utils/cloudinary/clodinary.tools";
 import { cloudinaryEventEmitter, SEND_CLOUDINARY_EVENT } from "src/common/utils/cloudinary/cloudinary.event";
+import ProductRepository from "src/DB/repositories/product.repository";
+import { Types } from "mongoose";
 
 
 
 @Injectable()
 export class UserService {
-    constructor(private readonly cloudinaryTools: CloudinaryTools,private readonly userRepository: UserRepository, private readonly RedisService: redisService, private readonly tokenService: TokenService) { }
+    constructor(private readonly cloudinaryTools: CloudinaryTools,private readonly userRepository: UserRepository, private readonly RedisService: redisService, private readonly tokenService: TokenService,private readonly productRepository:ProductRepository) { }
 
     async getUser() {
         return await this.userRepository.find(
@@ -114,6 +116,13 @@ export class UserService {
         return { accessToken, refreshToken };
 
     }
+
+    
+
+
+
+
+
     async uploadProfilePic( file: Express.Multer.File) {
         const userId = "6a39a6deddbb9c69bcfca1b0"
         console.log(userId);
@@ -132,7 +141,47 @@ export class UserService {
             await user.save();
             return { message: "Profile picture uploaded successfully", profilePic: secure_url };
         });
+    }
 
+    async add_remove_from_wishlist(user: hydartedUserDoc, productId: Types.ObjectId){
+
+        if (!productId) {
+            throw new BadRequestException("ProductId not sent")
+        }
+
+        const product = await this.productRepository.findOne({filter:{
+            _id:productId
+        }})
+        if(!product){
+            throw new BadRequestException("There is no product with that ID")
+        }
+        let isExist = false
+        const productExistInWishlist = await this.userRepository.findOneAndUpdate({filter:{
+            _id:user._id,
+            whishList:{$in:[productId]}
+        },
+        update:{
+            $pull:{
+                whishList:productId
+            }
+        }
+    })
+
+    if (!productExistInWishlist) {
+        await this.userRepository.findOneAndUpdate({
+            filter: {
+                _id: user._id,
+            },
+            update: {
+                $addToSet: {
+                    whishList: productId
+                }
+            }
+        })
+        isExist = true
+    }
+
+        return isExist ? { message: "product add to wishlist" } : { message: "product removed to wishlist" }
     }
 
 

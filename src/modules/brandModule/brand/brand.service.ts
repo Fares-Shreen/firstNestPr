@@ -71,6 +71,11 @@ export class BrandService {
         const brands = await this.brandRepository.pagination({
             page,
             limit,
+            populate:[
+                {
+                    path:"product"
+                }
+            ],
             search: search ? {
                 $or: [
                     { name: { $regex: search, $options: "i" } },

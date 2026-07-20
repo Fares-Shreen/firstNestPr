@@ -10,6 +10,11 @@ import { RedisModule } from './common/cache/redis.module';
 import { BrandModule } from './modules/brandModule/brand/brand.module';
 import { CategoryModule } from './modules/categoryModule/category/category.module';
 import { ProductModule } from './modules/productModule/product/product.module';
+import { SubCategoryModule } from './modules/subCategory/subCategory/subCategory.module';
+import { CartModule } from './modules/cartModule/cart/cart.module';
+import { couponModule } from './modules/couponModule/coupon/coupon.module';
+import { orderModule } from './modules/orderModule/order/order.module';
+import { ReviewModule } from './modules/reviewModule/review/review.module';
 
 @Module({
   imports: [ConfigModule.forRoot({
@@ -23,7 +28,7 @@ import { ProductModule } from './modules/productModule/product/product.module';
     connection.on('disconnecting', () => console.log('disconnecting'));
     return connection;
     }
-  }),UserModule,RedisModule,BrandModule,CategoryModule,ProductModule],
+  }), UserModule, RedisModule, BrandModule, CategoryModule, ProductModule, SubCategoryModule, CartModule,couponModule,orderModule,ReviewModule],
   controllers: [AppController],
   providers: [AppService],
 })

@@ -51,6 +51,11 @@ BrandSchema.pre(["findOneAndUpdate", "updateOne"], function () {
         updated.slug = slugify(updated.name)
     }
 })
+BrandSchema.virtual("product", {
+    ref: "Product",
+    localField: "_id",
+    foreignField: "brandId"
+})
 // BrandSchema.pre(["findOneAndUpdate", "updateOne"], function () {
 //     console.log(this)
 // })

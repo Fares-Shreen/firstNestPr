@@ -34,7 +34,7 @@ export class CategoryService {
             const Category = await this.CategoryRepository.create({
                 name,
                 logo: logo.secure_url,
-                createdBy: user.id,
+                createdBy: user._id,
                 brands:uniqueBrandsId,
                 slogan:slogan?slogan :undefined
             });
@@ -76,11 +76,16 @@ export class CategoryService {
             const Categorys = await this.CategoryRepository.pagination({
                 page,
                 limit,
-                 populate:[
+                populate:[
                     {
-                        path:"brand"
-                    }
-                 ]   ,
+                        path:"brand",
+                        populate:
+                        {
+                            path: "product"
+                        }
+                    },
+
+                 ],
                 search: search ? {
                     $or: [
                         { name: { $regex: search, $options: "i" } },

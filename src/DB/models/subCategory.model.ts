@@ -4,6 +4,7 @@ import { slugify } from "node_modules/zod/v4/core/util.cjs";
 import { Brand } from "./brand.model";
 import { User } from "./user.model";
 import productRepository from "../repositories/product.repository";
+import { Category } from "./category.model";
 
 
 @Schema({
@@ -12,7 +13,7 @@ import productRepository from "../repositories/product.repository";
     toObject: { virtuals: true },
     strictQuery: true
 })
-export class Category {
+export class SubCategory {
     @Prop({ type: String, required: true, min: 5, unique: true })
     name: string
     @Prop({ type: String, required: true })
@@ -20,36 +21,38 @@ export class Category {
     @Prop({ type: String })
     slogan: string
     @Prop({
-        type: String, default: function (this: Category) {
+        type: String, default: function (this: SubCategory) {
             return slugify(this.name)
         }
     })
     slug: string
+    @Prop({ type: Types.ObjectId, ref: Category.name })
+    categoryId: Types.ObjectId
     @Prop({ type: [{ type: Types.ObjectId, ref: 'Brand' }] })
-    brands: Types.ObjectId[] 
+    brands: Types.ObjectId[]
     @Prop({ type: Types.ObjectId, required: true, ref: User.name })
-    createdBy: Types.ObjectId
+    createdBy: string
     @Prop({ type: Types.ObjectId, ref: User.name })
-    updatedBy: Types.ObjectId
+    updatedBy: string
     @Prop({ type: Types.ObjectId, ref: User.name })
-    deletedBy: Types.ObjectId
+    deletedBy: string
     @Prop({ type: Date, default: null })
     deleteAt: Date
     @Prop({ type: Boolean, default: false })
     isDeleted: boolean
 }
 
-export const categorySchema = SchemaFactory.createForClass(Category)
-categorySchema.virtual("brand", {
-    ref: "Brand",
-    localField: "_id",
-    foreignField: "categoryId"
-})
+export const SubcategorySchema = SchemaFactory.createForClass(SubCategory)
+// SubcategorySchema.virtual("brand", {
+//     ref: "Brand",
+//     localField: "_id",
+//     foreignField: "SubcategoryId"
+// })
 
-categorySchema.pre(["findOneAndUpdate", "updateOne"], async function () {
+SubcategorySchema.pre(["findOneAndUpdate", "updateOne"], async function () {
     console.log(this.getUpdate());
     console
-    const updated = this.getUpdate() as mongoose.UpdateQuery<Category>
+    const updated = this.getUpdate() as mongoose.UpdateQuery<SubCategory>
     if (updated.name) {
         updated.slug = slugify(updated.name)
     }
@@ -58,14 +61,14 @@ categorySchema.pre(["findOneAndUpdate", "updateOne"], async function () {
 //         const Product = this.model.db.model('Product');
 //         const Brand = this.model.db.model('Brand');
 //         await Product.updateMany(
-//             { categoryId: this.getQuery()  },
+//             { SubcategoryId: this.getQuery()  },
 //             {
 //                 isDeleted: true,
 //                 deleteAt: new Date(),
 //             },
 //         );
 //         await Brand.updateMany(
-//             { categoryId: this.getQuery() },
+//             { SubcategoryId: this.getQuery() },
 //             {
 //                 isDeleted: true,
 //                 deleteAt: new Date(),
@@ -74,14 +77,14 @@ categorySchema.pre(["findOneAndUpdate", "updateOne"], async function () {
   
 //     }
 })
-// CategorySchema.pre(["findOneAndUpdate", "updateOne"], function () {
+// SubCategorySchema.pre(["findOneAndUpdate", "updateOne"], function () {
 //     console.log(this)
 // })
 
-categorySchema.pre(["find", "findOne"], function () {
+SubcategorySchema.pre(["find", "findOne"], function () {
     this.where({ isDeleted: false, deleteAt: null })
 });
 
 
-export type hydartedCategoryDoc = HydratedDocument<Category>
-export const categoryModel = MongooseModule.forFeature([{ name: Category.name, schema: categorySchema }])
+export type hydartedSubCategoryDoc = HydratedDocument<SubCategory>
+export const SubcategoryModel = MongooseModule.forFeature([{ name: SubCategory.name, schema: SubcategorySchema }])

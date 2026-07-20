@@ -5,14 +5,21 @@ import { ProductIdDto, ProductsFilterDto, createProductDTO, updateProductDto } f
 import { hydartedUserDoc } from 'src/DB/models/user.model';
 import BrandRepository from 'src/DB/repositories/brand.repository';
 import { Types } from 'mongoose';
+import CategoryRepository from 'src/DB/repositories/category.repository';
 
 @Injectable()
 export class ProductService {
-    constructor(private readonly ProductRepository: ProductRepository, private readonly cloudinaryTools: CloudinaryTools, private readonly brandsRepository: BrandRepository) { }
+    constructor(private readonly ProductRepository: ProductRepository, private readonly cloudinaryTools: CloudinaryTools, private readonly brandsRepository: BrandRepository, private readonly categoryRepository: CategoryRepository) { }
 
     async createProduct(files: { mainImage?: Express.Multer.File[], subImages?: Express.Multer.File[] }, user: hydartedUserDoc, ProductData: createProductDTO) {
-        const { name, brandId, categoryId, description, price, discount, stock } = ProductData;
+        let { name, brandId, categoryId, description, price, discount, stock } = ProductData;
         console.log(files)
+        if (await this.categoryRepository.findOne({ filter: { _id: categoryId } })) {
+            throw new BadRequestException("Category doasnot exist");
+        }
+        if (await this.brandsRepository.findOne({ filter: { _id: brandId } })) {
+            throw new BadRequestException("Brand doasnot exist");
+        }
         if (await this.ProductRepository.findOne({ filter: { name } })) {
             throw new ConflictException("Product already exists");
         }
@@ -32,6 +39,9 @@ export class ProductService {
         let subImages: { public_id: string; secure_url: string; }[] = [];
         if (files.subImages && files.subImages.length > 0) {
             subImages = (await this.cloudinaryTools.uploadFiles({ files: files.subImages as any, folder: `Product-subImages/${name}` }))!;
+        }
+        if (price && discount) {
+            price = price - (price * discount / 100);
         }
         const Product = await this.ProductRepository.create({
             name,
@@ -57,7 +67,7 @@ export class ProductService {
 
     async updateProduct(user: hydartedUserDoc, ProductData: updateProductDto, ProductId: Types.ObjectId) {
         console.log(ProductData)
-        const { name, price, description, discount, stock, categoryId, brandId } = ProductData;
+        let { name, price, description, discount, stock, categoryId, brandId } = ProductData;
         const Product = await this.ProductRepository.findOne({ filter: { _id: ProductId } })
         if (!Product) {
             throw new BadRequestException("Product doasnot exist");
@@ -71,6 +81,16 @@ export class ProductService {
         const updatedFields = {
             updatedBy: user.id,
         }
+        if (price && discount) {
+            price = price - (price * discount / 100);
+        }
+        else if (price) {
+            price = price - (price * Product.discount / 100);
+        }
+        else if (discount) {
+            price = Product.price - (Product.price * discount / 100);
+        }
+
         if (name) {
             updatedFields['name'] = name;
         }
@@ -87,11 +107,19 @@ export class ProductService {
             updatedFields['stock'] = stock;
         }
         if (categoryId) {
+            if (await this.categoryRepository.findOne({ filter: { _id: categoryId } })) {
+                throw new BadRequestException("Category doasnot exist");
+            }
+
             updatedFields['categoryId'] = categoryId;
         }
         if (brandId) {
+            if (await this.brandsRepository.findOne({ filter: { _id: brandId } })) {
+                throw new BadRequestException("Brand doasnot exist");
+            }
             updatedFields['brandId'] = brandId;
         }
+
 
         const updatedProduct = await this.ProductRepository.findOneAndUpdate({
             filter: { _id: ProductId }, update: updatedFields, options: { new: true }
