@@ -15,9 +15,9 @@ export class ReviewService {
         if (!await this.productRepository.findOne({ filter: {_id:productId,boughtBy:{$in:[user._id]}} })) {
             throw new BadRequestException("You must buy this product to make review on it");
         }
-        // if (await this.ReviewRepository.findOne({filter:{createdBy:user._id}})) {
-        //     throw new BadRequestException("You already make review on that porduct to can update it or delete it");
-        // }
+        if (await this.ReviewRepository.findOne({filter:{createdBy:user._id}})) {
+            throw new BadRequestException("You already make review on that porduct to can update it or delete it");
+        }
 
         const Review = await this.ReviewRepository.create({
             rate_number:rate_number,
